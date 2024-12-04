@@ -1,0 +1,9 @@
+.venv
+__pycache__
+dist
+*.egg-info
+key.hex
+ft_otp.key
+.buildozer
+bin
+*.spec

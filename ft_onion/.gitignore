@@ -1,0 +1,7 @@
+*.vanity
+gitname
+.ssh/
+.env
+*subject.pdf
+*_secret_key
+*_public_key

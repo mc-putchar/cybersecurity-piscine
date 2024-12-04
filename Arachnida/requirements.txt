@@ -1,0 +1,5 @@
+aiohttp
+click
+Pillow
+requests
+textual

@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools >= 64.0"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "ft_otp"
+description = "A simple OTP program"
+version = "0.0.42"
+requires-python = ">=3.8"
+dependencies = [
+	"qrcode",
+	"kivy"
+]
+[project.scripts]
+ft_otp = "ft_otp:ft_otp"

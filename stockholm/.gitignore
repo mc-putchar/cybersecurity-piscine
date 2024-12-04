@@ -1,0 +1,13 @@
+.vscode/
+.venv/
+.cache/
+__pycache__/
+build/
+infection/
+*.tar.gz
+*.tar.xz
+*.subject.pdf
+v1/
+v2/
+v3/
+*.pem

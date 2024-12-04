@@ -1,0 +1,7 @@
+*.tgz
+binary/
+patched/
+*.out
+*.o
+*.a
+*.subject.pdf

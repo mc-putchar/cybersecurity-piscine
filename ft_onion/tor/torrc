@@ -1,0 +1,7 @@
+HiddenServiceDir /var/lib/tor/ft_onion
+HiddenServicePort 80 server:80
+HiddenServicePort 4242 server:22
+
+HiddenServiceDir /var/lib/tor/gitea
+HiddenServicePort 80 server:3000
+HiddenServicePort 22 gitea:2222

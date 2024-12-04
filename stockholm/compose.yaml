@@ -1,0 +1,13 @@
+#version: '42'
+services:
+  quarantine:
+    build: .
+    volumes:
+      - ./infection:/root/infection
+    secrets:
+      - source: stockholm
+        target: stockholm
+        mode: 0511
+secrets:
+  stockholm:
+    file: ./stockholm

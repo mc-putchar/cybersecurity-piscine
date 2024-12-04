@@ -1,0 +1,15 @@
+# /etc/ssh/sshd_config
+
+PermitRootLogin no
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
+AuthorizedKeysFile /home/onion/.ssh/authorized_keys
+
+# Additional hardening options
+MaxAuthTries 3
+AllowUsers onion
+AllowTcpForwarding no
+AllowAgentForwarding no
+PermitUserEnvironment no
