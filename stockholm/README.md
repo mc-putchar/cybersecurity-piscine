@@ -21,17 +21,9 @@ Ensure the program is executable:
 chmod +x stockholm
 ```
 
-Take files hostage:
+Take files hostage: `./stockholm`  
 
-```bash
-./stockholm
-```
-
-Unlock files:
-
-```bash
-./stockholm -r <key>
-```
+Unlock files: `./stockholm -r <key>`  
 
 The key to unlock the files is stored in `private.pem`.  
 Make sure to keep the private key safe. Without it, the files are lost forever*.  

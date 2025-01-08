@@ -1,6 +1,8 @@
 VENV := .venv
 
-.PHONY: run clean re
+.PHONY: install run clean re
+install: $(VENV)
+	@echo "Installed ft_otp and ready to use"
 run: $(VENV)
 	@. $(VENV)/bin/activate && ft_otp --gui
 clean:
@@ -8,4 +10,5 @@ clean:
 re: clean run
 
 $(VENV):
-	@virtualenv $(VENV) && . $(VENV)/bin/activate && pip install -e .
+	$(info Preparing virtual environment)
+	@python3 -m venv $(VENV) && . $(VENV)/bin/activate && pip install -e .
