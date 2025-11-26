@@ -9,6 +9,7 @@ ENVFILE := .env
 SSH := .ssh
 AUTH_KEYS := $(SSH)/authorized_keys
 TOR_CLIENT_PORT := 9150
+PROFILE ?= default
 
 # Colors
 COLOUR_END := \033[0m
@@ -30,7 +31,7 @@ help: # Display this helpful message
 	Makefile
 
 up: $(ENVFILE) $(AUTH_KEYS) # Up the tor
-	@$(DC) -f $(SRC) $@ --build -d
+	@$(DC) -f $(SRC) --profile $(PROFILE) $@ --build -d
 down: # Chop that onion down
 	@$(DC) -f $(SRC) $@
 start: # Start containers
