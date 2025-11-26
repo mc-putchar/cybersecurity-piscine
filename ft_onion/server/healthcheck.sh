@@ -7,7 +7,7 @@ if [ -z "$nginx_pid" ]; then
 	exit 1
 fi
 # Check if nginx can serve requests
-if ! curl -s http://localhost/health > /dev/null; then
+if ! wget -q --spider http://localhost/health > /dev/null; then
 	exit 1
 fi
 
