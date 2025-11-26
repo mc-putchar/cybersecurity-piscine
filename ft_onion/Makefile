@@ -45,7 +45,7 @@ ps: # Show running containers
 	@$(DC) -f $(SRC) ps
 clean: down # Clean docker system
 	docker system prune
-name: $(HOSTNAME) $(GITNAME) # Display .onion hostname
+name: $(HOSTNAME) $(GITNAME) # Display .onion hostnames
 	@echo "Hostname: `cat $(HOSTNAME)`"
 	@echo "Gitea Hostname: `cat $(GITNAME)`"
 $(HOSTNAME): up
@@ -62,6 +62,7 @@ $(AUTH_KEYS): $(SSH)
 $(SSH):
 	@mkdir -p $@
 $(ENVFILE):
-	@echo "POSTGRES_USER=gitea" > $(ENVFILE)
+	@echo "ALPINE_VERSION=3.22" > $(ENVFILE)
+	@echo "POSTGRES_USER=ft_onion" >> $(ENVFILE)
 	@echo -n "POSTGRES_PASSWORD=" >> $(ENVFILE)
 	@openssl rand -base64 42 | tr -d '=+/' | cut -c1-24 >> $(ENVFILE)

@@ -1,10 +1,11 @@
-FROM alpine:3.19
+ARG version
+FROM alpine:${version}
 ENV LANG C.UTF-8
 
 RUN apk update && apk add --no-cache \
-	nginx=1.24.0-r16 \
-	openssh=9.6_p1-r1 \
-	supervisor=4.2.5-r4
+	nginx \
+	openssh \
+	supervisor
 
 RUN mkdir -p /var/run/sshd && \
 	adduser -D onion && \
@@ -28,4 +29,3 @@ RUN chmod +x /usr/bin/healthcheck.sh
 
 EXPOSE 22 80
 ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisord.conf" ]
-# CMD [ "tail", "-f", "/dev/null" ]
